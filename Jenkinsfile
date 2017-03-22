@@ -125,7 +125,7 @@ node('docker') {
 
             //for (arch in ARCH.split(',')) {
             stage("build-binary-${ARCH}") {
-                sh("cd src; bash ../scripts/run_tests")
+                sh("cd src; bash ../scripts/run_tests.sh")
             }
             //}
         } catch (Exception e) {
