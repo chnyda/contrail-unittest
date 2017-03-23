@@ -30,9 +30,7 @@ sudo scons --root=`pwd` --kernel-dir=$KERNELDIR -k -j 1 \
 	controller/src/dns:test \
 	controller/src/database/gendb:test \
 	controller/src/ifmap:test \
-	controller/src/io:test \
 	controller/src/net:test \
-	controller/src/opserver:test \
 	controller/src/query_engine:test \
 	controller/src/schema:test \
 	controller/src/xmpp:test \
@@ -40,5 +38,6 @@ sudo scons --root=`pwd` --kernel-dir=$KERNELDIR -k -j 1 \
 	controller/src/config/schema-transformer:test \
 	controller/src/ksync:test
 
-
-#controller/src/config/api-server:test \
+#controller/src/opserver:test
+#controller/src/config/api-server:test
+#controller/src/io:test
