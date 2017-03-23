@@ -56,8 +56,28 @@ node('docker') {
         checkout scm
         git_commit['contrail-pipeline'] = git.getGitCommit()
 
+        
+        def jenkinsUID = sh (
+            script: 'id -u',
+            returnStdout: true
+        ).trim()
+
+        def imgName = "${OS}-${DIST}-${ARCH}"
+        def img = docker.build(
+                    "${imgName}:${timestamp}",
+                    [
+                        "--build-arg uid=${jenkinsUID}",
+                        "--build-arg timestamp=${timestamp}",
+                        "-f docker/${imgName}.Dockerfile",
+                        "docker"
+                    ].join(' ')
+                )
+
         stage("cleanup") {
-            sh("rm -rf src || true")
+            img.inside{
+                sh("sudo chown -R jenkins:jenkins * || true")
+                sh("sudo rm -rf src/ || true")
+            }
         }
 
         stage("checkout") {
@@ -88,24 +108,7 @@ node('docker') {
 
         try {
 
-            def jenkinsUID = sh (
-                script: 'id -u',
-                returnStdout: true
-            ).trim()
-            def imgName = "${OS}-${DIST}-${ARCH}"
-            def img
             stage("build-source") {
-                
-                img = docker.build(
-                    "${imgName}:${timestamp}",
-                    [
-                        "--build-arg uid=${jenkinsUID}",
-                        "--build-arg timestamp=${timestamp}",
-                        "-f docker/${imgName}.Dockerfile",
-                        "docker"
-                    ].join(' ')
-                )
-                
 
                 img.inside {
                     sh("cd src/third_party; python fetch_packages.py")
@@ -125,7 +128,9 @@ node('docker') {
 
             //for (arch in ARCH.split(',')) {
             stage("build-binary-${ARCH}") {
-                sh("cd src; /bin/bash -c ../scripts/run_tests.sh")
+                img.inside{
+                    sh("cd src; bash -c ../scripts/run_tests.sh")
+                }
             }
             //}
         } catch (Exception e) {
@@ -143,6 +148,6 @@ node('docker') {
        currentBuild.result = "FAILURE"
        throw e
     } finally {
-       // common.sendNotification(currentBuild.result,"",["slack"])
+       common.sendNotification(currentBuild.result,"",["slack"])
     }
 }
