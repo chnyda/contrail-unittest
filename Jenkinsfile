@@ -125,7 +125,7 @@ node('docker') {
 
             //for (arch in ARCH.split(',')) {
             stage("build-binary-${ARCH}") {
-                sh("cd src; bash ../scripts/run_tests.sh")
+                sh("cd src; /bin/bash -c ../scripts/run_tests.sh")
             }
             //}
         } catch (Exception e) {
@@ -143,6 +143,6 @@ node('docker') {
        currentBuild.result = "FAILURE"
        throw e
     } finally {
-       common.sendNotification(currentBuild.result,"",["slack"])
+       // common.sendNotification(currentBuild.result,"",["slack"])
     }
 }
