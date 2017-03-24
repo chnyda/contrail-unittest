@@ -82,9 +82,13 @@ node('docker') {
 
         stage("checkout") {
             for (component in components) {
+                def source_url = SOURCE_URL
+                //if (component[1] == "controller")
+                //    source_url = "https://github.com/chnyda"
+
                     git.checkoutGitRepository(
                         "src/${component[1]}",
-                        "${SOURCE_URL}/${component[0]}.git",
+                        "${source_url}/${component[0]}.git",
                         component[2],
                         SOURCE_CREDENTIALS,
                         true,
