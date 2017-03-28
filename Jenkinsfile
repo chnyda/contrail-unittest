@@ -82,19 +82,22 @@ node('docker') {
 
         stage("checkout") {
             for (component in components) {
-                def source_url = SOURCE_URL
-                //if (component[1] == "controller")
-                //    source_url = "https://github.com/chnyda"
-
-                    git.checkoutGitRepository(
-                        "src/${component[1]}",
-                        "${source_url}/${component[0]}.git",
-                        component[2],
-                        SOURCE_CREDENTIALS,
-                        true,
-                        30,
-                        1
-                    )
+                    if (component[0] == GERRIT_PROJECT) {
+                        gerrit.gerritPatchsetCheckout ([
+                            path: "src/" + component[1],
+                            credentialsId : gerritCredentials
+                        ])
+                    } else {
+                        git.checkoutGitRepository(
+                            "src/${component[1]}",
+                            "${source_url}/${component[0]}.git",
+                            component[2],
+                            SOURCE_CREDENTIALS,
+                            true,
+                            30,
+                            1
+                        )
+                    }
             }
 
             for (component in components) {
