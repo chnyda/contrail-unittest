@@ -2,6 +2,7 @@
 def common = new com.mirantis.mk.Common()
 def git = new com.mirantis.mk.Git()
 def debian = new com.mirantis.mk.Debian()
+def gerrit = new com.mirantis.mk.Gerrit()
 
 // Define global variables
 def timestamp = common.getDatetime()
@@ -40,6 +41,13 @@ def sourcePackages = [
 
 def git_commit = [:]
 def properties = [:]
+
+def gerritProject
+try {
+  gerritProject = GERRIT_PROJECT
+} catch (MissingPropertyException e) {
+  gerritProject = ""
+}
 
 
 def buildSourcePackageStep(img, pkg, version) {
@@ -82,7 +90,7 @@ node('docker') {
 
         stage("checkout") {
             for (component in components) {
-                    if (component[0] == GERRIT_PROJECT) {
+                    if (component[0] == gerritProject) {
                         gerrit.gerritPatchsetCheckout ([
                             path: "src/" + component[1],
                             credentialsId : gerritCredentials
@@ -101,10 +109,12 @@ node('docker') {
             }
 
             for (component in components) {
-                dir("src/${component[1]}") {
-                    commit = git.getGitCommit()
-                    git_commit[component[0]] = commit
-                    properties["git_commit_"+component[0].replace('-', '_')] = commit
+                if (component[0] != gerritProject) {
+                    dir("src/${component[1]}") {
+                        commit = git.getGitCommit()
+                        git_commit[component[0]] = commit
+                        properties["git_commit_"+component[0].replace('-', '_')] = commit
+                    }
                 }
             }
 
