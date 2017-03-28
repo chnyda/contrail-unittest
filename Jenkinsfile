@@ -47,6 +47,27 @@ def sourcePackages = [
     "contrail-heat"
 ]
 
+def os
+try {
+  os = OS
+} catch (MissingPropertyException e) {
+  os = "ubuntu"
+}
+
+def dist
+try {
+  dist = DIST
+} catch (MissingPropertyException e) {
+  dist = "trusty"
+}
+
+def arch
+try {
+  arch = ARCH
+} catch (MissingPropertyException e) {
+  os = "amd64"
+}
+
 def git_commit = [:]
 def properties = [:]
 
@@ -77,7 +98,7 @@ node('docker') {
             returnStdout: true
         ).trim()
 
-        def imgName = "${OS}-${DIST}-${ARCH}"
+        def imgName = "${os}-${dist}-${arch}"
         def img = docker.build(
                     "${imgName}:${timestamp}",
                     [
@@ -150,8 +171,8 @@ node('docker') {
                 common.serial(buildSteps)
             }
 
-            //for (arch in ARCH.split(',')) {
-            stage("build-binary-${ARCH}") {
+            //for (arch in arch.split(',')) {
+            stage("build-binary-${arch}") {
                 img.inside{
                     sh("cd src; bash -c ../scripts/run_tests.sh")
                 }
@@ -159,7 +180,7 @@ node('docker') {
             //}
         } catch (Exception e) {
             currentBuild.result = 'FAILURE'
-            if (KEEP_REPOS.toBoolean() == false) {
+            if (KEEP_REPos.toBoolean() == false) {
                 println "Cleaning up docker images"
                 sh("docker images | grep -E '[-:\\ ]+${timestamp}[\\.\\ /\$]+' | awk '{print \$3}' | xargs docker rmi -f || true")
             }
