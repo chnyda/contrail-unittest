@@ -6,26 +6,34 @@ def gerrit = new com.mirantis.mk.Gerrit()
 
 // Define global variables
 def timestamp = common.getDatetime()
-def version = SOURCE_BRANCH.replace('R', '') + "~${timestamp}"
+
+def sourceBranch
+try {
+  sourceBranch = GERRIT_BRANCH
+} catch (MissingPropertyException e) {
+  sourceBranch = SOURCE_BRANCH
+}
+
+def version = sourceBranch.replace('R', '') + "~${timestamp}"
 
 def components = [
-    ["contrail-build", "tools/build", SOURCE_BRANCH],
-    ["contrail-controller", "controller", SOURCE_BRANCH],
-    ["contrail-vrouter", "vrouter", SOURCE_BRANCH],
-    ["contrail-third-party", "third_party", SOURCE_BRANCH],
-    ["contrail-generateDS", "tools/generateds", SOURCE_BRANCH],
-    ["contrail-sandesh", "tools/sandesh", SOURCE_BRANCH],
-    ["contrail-packages", "tools/packages", SOURCE_BRANCH],
-    ["contrail-nova-vif-driver", "openstack/nova_contrail_vif", SOURCE_BRANCH],
-    ["contrail-neutron-plugin", "openstack/neutron_plugin", SOURCE_BRANCH],
-    ["contrail-nova-extensions", "openstack/nova_extensions", SOURCE_BRANCH],
-    ["contrail-heat", "openstack/contrail-heat", SOURCE_BRANCH],
+    ["contrail-build", "tools/build", sourceBranch],
+    ["contrail-controller", "controller", sourceBranch],
+    ["contrail-vrouter", "vrouter", sourceBranch],
+    ["contrail-third-party", "third_party", sourceBranch],
+    ["contrail-generateDS", "tools/generateds", sourceBranch],
+    ["contrail-sandesh", "tools/sandesh", sourceBranch],
+    ["contrail-packages", "tools/packages", sourceBranch],
+    ["contrail-nova-vif-driver", "openstack/nova_contrail_vif", sourceBranch],
+    ["contrail-neutron-plugin", "openstack/neutron_plugin", sourceBranch],
+    ["contrail-nova-extensions", "openstack/nova_extensions", sourceBranch],
+    ["contrail-heat", "openstack/contrail-heat", sourceBranch],
     ["contrail-ceilometer-plugin", "openstack/ceilometer_plugin", "master"],
-    ["contrail-web-storage", "contrail-web-storage", SOURCE_BRANCH],
-    ["contrail-web-server-manager", "contrail-web-server-manager", SOURCE_BRANCH],
-    ["contrail-web-controller", "contrail-web-controller", SOURCE_BRANCH],
-    ["contrail-web-core", "contrail-web-core", SOURCE_BRANCH],
-    ["contrail-webui-third-party", "contrail-webui-third-party", SOURCE_BRANCH]
+    ["contrail-web-storage", "contrail-web-storage", sourceBranch],
+    ["contrail-web-server-manager", "contrail-web-server-manager", sourceBranch],
+    ["contrail-web-controller", "contrail-web-controller", sourceBranch],
+    ["contrail-web-core", "contrail-web-core", sourceBranch],
+    ["contrail-webui-third-party", "contrail-webui-third-party", sourceBranch]
 ]
 
 def sourcePackages = [
@@ -48,7 +56,6 @@ try {
 } catch (MissingPropertyException e) {
   gerritProject = ""
 }
-
 
 def buildSourcePackageStep(img, pkg, version) {
     return {
