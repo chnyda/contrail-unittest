@@ -65,7 +65,7 @@ def arch
 try {
   arch = ARCH
 } catch (MissingPropertyException e) {
-  os = "amd64"
+  arch = "amd64"
 }
 
 def git_commit = [:]
