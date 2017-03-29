@@ -126,7 +126,7 @@ node('docker') {
                     } else {
                         git.checkoutGitRepository(
                             "src/${component[1]}",
-                            "${source_url}/${component[0]}.git",
+                            "${SOURCE_URL}/${component[0]}.git",
                             component[2],
                             SOURCE_CREDENTIALS,
                             true,
