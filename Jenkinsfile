@@ -78,6 +78,15 @@ try {
   gerritProject = ""
 }
 
+def sourceUrl
+try {
+  sourceUrl = SOURCE_URL
+} catch (MissingPropertyException e) {
+  sourceUrl = "ssh://jenkins-mk@gerrit.mcp.mirantis.net:29418/contrail"
+}
+
+def credentials = "gerrit"
+
 def buildSourcePackageStep(img, pkg, version) {
     return {
         sh("rm -f src/build/packages/${pkg}_* || true")
@@ -118,17 +127,17 @@ node('docker') {
 
         stage("checkout") {
             for (component in components) {
-                    if (component[0] == gerritProject) {
+                    if ("contrail/${component[0]}" == gerritProject) {
                         gerrit.gerritPatchsetCheckout ([
                             path: "src/" + component[1],
-                            credentialsId : gerritCredentials
+                            credentialsId : credentials
                         ])
                     } else {
                         git.checkoutGitRepository(
                             "src/${component[1]}",
-                            "${SOURCE_URL}/${component[0]}.git",
+                            "${sourceUrl}/${component[0]}.git",
                             component[2],
-                            SOURCE_CREDENTIALS,
+                            credentials,
                             true,
                             30,
                             1
@@ -137,7 +146,7 @@ node('docker') {
             }
 
             for (component in components) {
-                if (component[0] != gerritProject) {
+                if ("contrail/${component[0]}" != gerritProject) {
                     dir("src/${component[1]}") {
                         commit = git.getGitCommit()
                         git_commit[component[0]] = commit
@@ -180,10 +189,8 @@ node('docker') {
             //}
         } catch (Exception e) {
             currentBuild.result = 'FAILURE'
-            if (KEEP_REPos.toBoolean() == false) {
-                println "Cleaning up docker images"
-                sh("docker images | grep -E '[-:\\ ]+${timestamp}[\\.\\ /\$]+' | awk '{print \$3}' | xargs docker rmi -f || true")
-            }
+            println "Cleaning up docker images"
+            sh("docker images | grep -E '[-:\\ ]+${timestamp}[\\.\\ /\$]+' | awk '{print \$3}' | xargs docker rmi -f || true")
             throw e
         }
 
