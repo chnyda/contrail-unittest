@@ -130,7 +130,8 @@ node('docker') {
                     if ("contrail/${component[0]}" == gerritProject) {
                         gerrit.gerritPatchsetCheckout ([
                             path: "src/" + component[1],
-                            credentialsId : credentials
+                            credentialsId : credentials,
+                            depth : 1
                         ])
                     } else {
                         git.checkoutGitRepository(
@@ -194,6 +195,11 @@ node('docker') {
             throw e
         }
 
+        img.inside{
+                sh("sudo chown -R jenkins:jenkins * || true")
+                sh("sudo rm -rf src/ || true")
+        }
+
 
     } catch (Throwable e) {
        // If there was an exception thrown, the build failed
@@ -201,5 +207,6 @@ node('docker') {
        throw e
     } finally {
        common.sendNotification(currentBuild.result,"",["slack"])
+
     }
 }
